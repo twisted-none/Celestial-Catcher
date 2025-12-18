@@ -1,0 +1,36 @@
+[package]
+name = "rust_iss"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web Framework and async runtime
+tokio = { version = "1.35.1", features = ["full"] }
+axum = "0.7.2"
+
+# Database and Cache
+sqlx = { version = "0.7.3", features = ["runtime-tokio-native-tls", "postgres", "chrono"] }
+redis = { version = "0.24.0", features = ["tokio-comp"] }
+
+# Serialization and Validation
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+validator = { version = "0.16.1", features = ["derive"] }
+
+# Utilities
+chrono = { version = "0.4.31", features = ["serde"] }
+rand = "0.8.5"
+dotenv = "0.15.0"
+
+# Logging and Tracing
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+
+# Tower ecosystem for middlewares
+tower = "0.4.13"
+tower-http = { version = "0.5.0", features = ["trace", "cors"] }
+
+# --- ГЛАВНЫЙ ФИКС ---
+# Мы явно указываем, что нам нужна ТОЛЬКО (знак '=') рабочая версия 'home'.
+# Cargo больше не будет даже смотреть на сломанную 0.5.12.
+home = "=0.5.11"

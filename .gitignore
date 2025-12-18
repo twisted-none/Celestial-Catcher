@@ -1,0 +1,44 @@
+# --- Операционная система ---
+.DS_Store
+Thumbs.db
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Docker ---
+.env
+docker-data/
+
+# --- PHP / Laravel ---
+/services/php-web/vendor/
+/services/php-web/node_modules/
+/services/php-web/.env
+/services/php-web/public/build/
+/services/php-web/public/hot
+/services/php-web/public/storage
+/services/php-web/storage/*.key
+/services/php-web/bootstrap/cache/*.php
+/services/php-web/storage/logs/*.log
+/services/php-web/storage/framework/sessions/*
+/services/php-web/database/database.sqlite
+/services/php-web/.php-cs-fixer.cache
+/services/php-web/.phpunit.result.cache
+
+# --- Rust  ---
+/services/rust-iss/target/
+/services/rust-iss/Cargo.lock 
+/services/rust-iss/.env
+
+# --- Pascal ---
+/services/pascal-legacy/*.o
+/services/pascal-legacy/main
+/services/pascal-legacy/*.csv
+/services/pascal-legacy/*.xlsx
+
+# --- Общие ---
+*.log
+*.sql
+*.sqlite
