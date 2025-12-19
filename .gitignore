@@ -32,6 +32,5 @@ docker-data/
 /services/pascal-legacy/*.csv
 /services/pascal-legacy/*.xlsx
 
-*.log
-*.sql
+*.log   
 *.sqlite
