@@ -8,7 +8,6 @@ RUN apt-get update && \
         bash && \
     rm -rf /var/lib/apt/lists/*
 
-# ВАЖНО: разрешаем pip ставить пакеты в system Python
 RUN pip3 install --no-cache-dir pandas openpyxl --break-system-packages
 
 WORKDIR /app

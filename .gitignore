@@ -1,18 +1,14 @@
-# --- Операционная система ---
 .DS_Store
 Thumbs.db
 
-# --- IDE ---
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# --- Docker ---
 .env
 docker-data/
 
-# --- PHP / Laravel ---
 /services/php-web/vendor/
 /services/php-web/node_modules/
 /services/php-web/.env
@@ -27,18 +23,15 @@ docker-data/
 /services/php-web/.php-cs-fixer.cache
 /services/php-web/.phpunit.result.cache
 
-# --- Rust  ---
 /services/rust-iss/target/
 /services/rust-iss/Cargo.lock 
 /services/rust-iss/.env
 
-# --- Pascal ---
 /services/pascal-legacy/*.o
 /services/pascal-legacy/main
 /services/pascal-legacy/*.csv
 /services/pascal-legacy/*.xlsx
 
-# --- Общие ---
 *.log
 *.sql
 *.sqlite

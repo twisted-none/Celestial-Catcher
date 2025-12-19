@@ -11,8 +11,6 @@ services:
       POSTGRES_DB: iss_db
     volumes:
       - pg_data:/var/lib/postgresql/data
-      # Если у тебя есть готовый дамп, оставь эту строку. 
-      # Если нет - ее можно убрать, миграции Laravel создадут структуру сами.
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app_network
@@ -54,13 +52,11 @@ services:
       context: ./services/php-web
       dockerfile: Dockerfile
     container_name: laravel_app
-    # ИСПРАВЛЕНИЕ 1: Ждем именно "healthy" состояния базы
     depends_on:
       postgres:
         condition: service_healthy
       rust-iss:
         condition: service_started
-    # ИСПРАВЛЕНИЕ 2: Запуск миграций перед стартом php-fpm
     command: >
       sh -c "php artisan migrate --force && php-fpm"
     environment:

@@ -46,7 +46,6 @@
                         <tr>
                             <td>{{ $log->fetched_at }}</td>
                             @php
-                                // Декодируем JSON один раз для всей строки
                                 $payload = json_decode($log->payload);
                             @endphp
                             <td>{{ $payload->velocity ?? 'N/A' }}</td>

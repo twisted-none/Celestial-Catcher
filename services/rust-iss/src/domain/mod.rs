@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-// Структура для сырого JSON ответа, который мы будем хранить
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IssPosition {
     pub latitude: String,

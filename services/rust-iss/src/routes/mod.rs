@@ -5,7 +5,6 @@ use axum::{
 use crate::config::AppState;
 use crate::handlers::{get_iss_data, health_check};
 use tower_http::trace::TraceLayer;
-// Можно добавить более сложный RateLimit, но для начала базовый TraceLayer
 
 pub fn create_router(state: AppState) -> Router {
     Router::new()

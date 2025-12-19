@@ -2,7 +2,6 @@ import pandas as pd
 import os
 import sys
 
-# Настройки путей
 csv_path = 'legacy_export.csv'
 xlsx_path = 'legacy_export.xlsx'
 
@@ -14,10 +13,8 @@ def convert_to_excel():
     print("Python Converter: Reading CSV...")
     
     try:
-        # Читаем CSV (разделитель точка с запятой)
         df = pd.read_csv(csv_path, sep=';', encoding='utf-8')
         
-        # Сохраняем в Excel
         df.to_excel(xlsx_path, index=False)
         
         print(f"Python Converter: Successfully created {xlsx_path}")
