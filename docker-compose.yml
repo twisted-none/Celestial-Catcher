@@ -1,21 +1,23 @@
-name: ${COMPOSE_PROJECT_NAME}
+version: '3.8'
 
 services:
   # --- База данных (PostgreSQL) ---
   postgres:
     image: postgres:15-alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-db
+    container_name: iss_db
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: iss_db
     volumes:
       - pg_data:/var/lib/postgresql/data
+      # Если у тебя есть готовый дамп, оставь эту строку. 
+      # Если нет - ее можно убрать, миграции Laravel создадут структуру сами.
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user} -d iss_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,28 +25,26 @@ services:
   # --- Кэш и Rate Limit (Redis) ---
   redis:
     image: redis:7-alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-redis
+    container_name: redis_cache
     networks:
       - app_network
 
-  # --- Rust Backend (API + Сбор данных) ---
+  # --- Rust Backend ---
   rust-iss:
     build:
       context: ./services/rust-iss
       dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME}-rust
+    container_name: rust_service
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
     environment:
-      DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}
-      REDIS_URL: redis://${REDIS_HOST}:${REDIS_PORT}
-      RUST_LOG: ${RUST_LOG_LEVEL}
-      FETCH_EVERY_SECONDS: ${FETCH_EVERY_SECONDS}
-      NASA_API_KEY: ${NASA_API_KEY}
-      NASA_API_URL: ${NASA_API_URL}
+      DATABASE_URL: postgres://${DB_USER:-user}:${DB_PASSWORD:-password}@postgres:5432/iss_db
+      REDIS_URL: redis://redis:6379
+      RUST_LOG: debug
+      NASA_API_KEY: "DEMO_KEY"
     networks:
       - app_network
 
@@ -53,23 +53,25 @@ services:
     build:
       context: ./services/php-web
       dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME}-php
+    container_name: laravel_app
+    # ИСПРАВЛЕНИЕ 1: Ждем именно "healthy" состояния базы
     depends_on:
-      - postgres
-      - rust-iss
+      postgres:
+        condition: service_healthy
+      rust-iss:
+        condition: service_started
+    # ИСПРАВЛЕНИЕ 2: Запуск миграций перед стартом php-fpm
+    command: >
+      sh -c "php artisan migrate --force && php-fpm"
     environment:
-      APP_NAME: ${APP_NAME}
-      APP_KEY: ${APP_KEY}
-      APP_URL: ${APP_URL}
       DB_CONNECTION: pgsql
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      RUST_API_URL: http://${RUST_HOST}:${RUST_PORT}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: iss_db
+      DB_USERNAME: ${DB_USER:-user}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      RUST_API_URL: http://rust-iss:3000
+      SESSION_DRIVER: database
     volumes:
       - ./services/php-web:/var/www/html
     networks:
@@ -80,27 +82,28 @@ services:
     build:
       context: ./services/pascal-legacy
       dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME}-legacy
+    container_name: legacy_worker
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-user}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
     networks:
       - app_network
 
   # --- Nginx Proxy ---
   nginx:
     image: nginx:alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    container_name: nginx_proxy
     ports:
-      - "${NGINX_PORT}:80"
+      - "80:80"
     volumes:
       - ./services/php-web/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./services/php-web:/var/www/html 
     depends_on:
       - php-web
-      - rust-iss
     networks:
       - app_network
 

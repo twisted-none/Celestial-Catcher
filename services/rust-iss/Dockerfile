@@ -3,7 +3,7 @@ FROM rust:latest as builder
 
 WORKDIR /app
 
-# Копируем ТОЛЬКО Cargo.toml
+# Копируем ТОЛЬКО Cargo.toml и Cargo.lock (если он есть)
 COPY Cargo.toml ./
 
 # Принудительно удаляем Cargo.lock, чтобы гарантировать его пересоздание.
@@ -25,6 +25,7 @@ RUN touch src/main.rs && \
 FROM debian:bookworm-slim
 WORKDIR /app
 
+# --- !!! ВОТ НУЖНОЕ ИЗМЕНЕНИЕ !!! ---
 # Устанавливаем недостающие библиотеки OpenSSL
 RUN apt-get update && apt-get install -y --no-install-recommends libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
 

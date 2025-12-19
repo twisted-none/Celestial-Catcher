@@ -17,37 +17,35 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# 1. Копируем composer.json для кэширования зависимостей
+# 1. Копируем только composer.json, чтобы кэшировать зависимости
 COPY composer.json composer.lock* ./
 
-# 2. Устанавливаем зависимости, но НЕ запускаем скрипты Laravel
+# 2. Устанавливаем зависимости, НЕ ЗАПУСКАЯ скрипты Laravel
 RUN composer install --optimize-autoloader --no-dev --no-scripts
 
-# 3. Копируем все остальные файлы проекта
+# 3. Теперь копируем все остальные файлы проекта (включая artisan)
 COPY . .
 
-# 4. Создаем .env файл из примера
-RUN php -r "file_exists('.env') || copy('.env.example', '.env');"
-
-# 5. Генерируем autoload БЕЗ запуска скриптов
+# --- ФИКС ---
+# 4. Генерируем autoload БЕЗ запуска скриптов
 RUN composer dump-autoload --optimize --no-scripts
 
-# 6. Создаем необходимые директории
-RUN mkdir -p storage/framework/{sessions,views,cache/data}
+# 5. Создаем .env файл
+RUN php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-# 7. Устанавливаем права доступа (критически важно сделать это ДО запуска artisan)
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# 6. Права доступа (!!! ПЕРЕМЕСТИЛИ СЮДА !!!)
+# Laravel'у нужны права на запись ДО запуска artisan команд
+# 6. Права доступа
+# Создаем директорию, если она не существует, и сразу выставляем права
+RUN mkdir -p /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 8. Генерируем ключ приложения
+# 7. Генерируем ключ приложения
 RUN php artisan key:generate --ansi
 
-# 9. Запускаем миграции для создания таблиц (`cache`, `jobs` и т.д.)
-RUN php artisan migrate --force
-
-# 10. Кэшируем конфигурацию, маршруты и вьюхи для максимальной скорости
 RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
-# ---------------------------------------------------
+
 
 CMD ["php-fpm"]
